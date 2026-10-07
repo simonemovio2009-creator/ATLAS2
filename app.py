@@ -8,22 +8,30 @@ st.write(
     "Ciao! Sono Atlas. Chiedimi qualsiasi cosa su analisi di mercato, testi o automazione."
 )
 
-# Inserisci qui la tua chiave API di Groq tra virgolette (oppure usa i Secrets di Streamlit)
+# Recupera la chiave dai Secrets di Streamlit oppure inseriscila qui sotto tra le virgolette per i test locali
 GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "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")
 
-if not GROQ_API_KEY or GROQ_API_KEY == "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":
+# Se usi il computer o vuoi testarlo ovunque senza configurare i secrets,
+# puoi anche incollare la chiave direttamente qui sotto al posto di "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"
+if (
+    not GROQ_API_KEY
+    or GROQ_API_KEY == "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"
+    or GROQ_API_KEY.startswith("INCOLLA")
+):
     st.warning(
-        "⚠️ Inserisci la tua chiave API di Groq nel codice o nei Secrets di Streamlit."
+        "⚠️ Nessuna chiave API trovata. Inseriscila nei Secrets di Streamlit oppure direttamente nel codice."
     )
 else:
-    client = Groq(api_key=GROQ_API_KEY)
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
 
-    user_input = st.text_area("Scrivi il tuo comando o la tua richiesta per Atlas:")
+        user_input = st.text_area(
+            "Scrivi il tuo comando o la tua richiesta per Atlas:"
+        )
 
-    if st.button("Chiedi ad Atlas"):
-        if user_input:
-            with st.spinner("Atlas sta elaborando la risposta..."):
-                try:
+        if st.button("Chiedi ad Atlas"):
+            if user_input:
+                with st.spinner("Atlas sta elaborando la risposta..."):
                     chat_completion = client.chat.completions.create(
                         messages=[
                             {
@@ -37,7 +45,7 @@ else:
                     risposta = chat_completion.choices[0].message.content
                     st.success("Risposta di Atlas:")
                     st.write(risposta)
-                except Exception as e:
-                    st.error(f"Errore durante la richiesta: {e}")
-        else:
-            st.error("Per favore, inserisci un comando per Atlas.")
+            else:
+                st.error("Per favore, inserisci un comando per Atlas.")
+    except Exception as e:
+        st.error(f"Errore di connessione con le API di Groq: {e}")
